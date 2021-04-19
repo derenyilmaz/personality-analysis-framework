@@ -51,6 +51,7 @@ def calculate_vector(username, auth_pair, from_file=False, debug=False, verbose=
             if lang_id == "tr":
                 # continue, tweet is turkish
                 n_response = zemberek.normalize(tweet.get_tweet())
+                
                 if n_response.normalized_input:
                     tweet.set_normalized_tweet(n_response.normalized_input)
                     normalized.append(tweet)
@@ -66,17 +67,35 @@ def calculate_vector(username, auth_pair, from_file=False, debug=False, verbose=
             exit()
 
     ## Lemmatization
-
+    #print("prep:", len(preprocessed), "norm:", len(normalized))
     for tweet in normalized:
+        #print(str(tweet.get_normalized_tweet))
         try:
             analysis_result = zemberek.analyze(tweet.get_normalized_tweet())
+            #print(analysis_result)
             tweet_lemmas = []
             tweet_pos = []
             tweet_plural = 0
             tweet_words = 0
             tweet_full_stop = 0
             tweet_unknown = 0
+            tweet_typo = 0
+            tweet_typo_ratio = 0
             plural_regex = r"A[1-3]pl"
+            #print(len(analysis_result.results))
+            tweet_text = (tweet.get_tweet().lower()).split(" ")
+            tweet_normalized_text = (tweet.get_normalized_tweet().lower()).split(" ")
+            tweet_text = list(filter(lambda x: (x.isalnum() or x[:-1].isalnum()), tweet_text))
+            tweet_normalized_text = list(filter(lambda x: (x.isalnum() or x[:-1].isalnum()), tweet_normalized_text))
+            
+            #print(tweet_text, tweet_normalized_text)
+            if len(tweet_text) == len(tweet_normalized_text):
+                for i in range(len(tweet_text)):
+                    if tweet_text[i] != tweet_normalized_text[i] and tweet_text[i][:-1] != tweet_normalized_text[i]:
+                        tweet_typo+=1
+            else:
+                tweet_typo = abs(len(tweet_text) - len(tweet_normalized_text))
+
             for a in analysis_result.results:
                 best = a.best
                 lemmas = ""
@@ -91,13 +110,15 @@ def calculate_vector(username, auth_pair, from_file=False, debug=False, verbose=
                 if a.token == ".":
                     tweet_full_stop += 1
                 tweet_words += 1
-
+            tweet_typo_ratio = tweet_typo/tweet_words
             for i in tweet_pos:
                 tweet.add_pos(i)
             tweet.set_pos("Plur", tweet_plural)
             tweet.set_pos("Word", tweet_words)
             tweet.set_pos("Fstop", tweet_full_stop)
             tweet.set_pos("Inc", tweet_unknown)
+            #print("typo ratio: ", tweet_typo_ratio,"\n")
+            tweet.set_typo_ratio(tweet_typo_ratio)
             tweet.set_lemma(set(tweet_lemmas))
 
         except zemberek.grpc._channel._InactiveRpcError:
@@ -115,7 +136,7 @@ def calculate_vector(username, auth_pair, from_file=False, debug=False, verbose=
     ## Feature Reduction
     ## Normalization
 
-    sum_vector = np.array([0] * 20)
+    sum_vector = np.array([0] * 21)
 
     sum_lemmas = []
 
@@ -131,7 +152,7 @@ def calculate_vector(username, auth_pair, from_file=False, debug=False, verbose=
     normalized = np.array(discretizator.get_discretized())
 
     if verbose is True:
-        print(normalized.reshape(1, 20))
+        print(normalized.reshape(1, 21))
         print(sum_lemmas)
 
     ## TF-IDF Weighting and Word2Vec based Word Embedding
@@ -188,7 +209,7 @@ def calculate_vector(username, auth_pair, from_file=False, debug=False, verbose=
 
     ## Composition of Extracted Features and Word2Vec Vectors
 
-    all_vector = vv + normalized.reshape(1, 20).tolist()[0]
+    all_vector = vv + normalized.reshape(1, 21).tolist()[0]
 
     if verbose is True:
         print(all_vector)
