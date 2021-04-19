@@ -27,6 +27,7 @@ class Vector:
     __incorrect = 0
     __plural = 0
     __full_stop = 0
+    __typo = 0
 
     # emoji
     __smiling_emoji = 0
@@ -72,15 +73,20 @@ class Vector:
         self.__negative = pos_vector.get("Neg", 0)
         self.__full_stop = pos_vector.get("Fstop", 0)
         self.__incorrect = pos_vector.get("Inc", 0)
+        #self.__typo = pos_vector.get("Typo", 0)
 
     def __set_emojis(self, tweet):
         self.__smiling_emoji = tweet.get_smiling_emoji()
         self.__negative_emoji = tweet.get_negative_emoji()
 
+    def __set_typo_ratio(self, tweet):
+        self.__typo = tweet.get_typo_ratio()
+
     def set_vector(self, tweet):
         self.__set_time(tweet)
         self.__set_zemberek(tweet)
         self.__set_emojis(tweet)
+        self.__set_typo_ratio(tweet)
 
     def get_vector(self):
-        return [self.__morning, self.__afternoon, self.__evening, self.__night, self.__word, self.__verb, self.__noun, self.__punctuation, self.__adjective, self.__adverb, self.__negative, self.__numeral, self.__determiner, self.__conjunction, self.__pronoun, self.__incorrect, self.__plural, self.__full_stop, self.__smiling_emoji, self.__negative_emoji]
+        return [self.__morning, self.__afternoon, self.__evening, self.__night, self.__word, self.__verb, self.__noun, self.__punctuation, self.__adjective, self.__adverb, self.__negative, self.__numeral, self.__determiner, self.__conjunction, self.__pronoun, self.__incorrect, self.__plural, self.__full_stop, self.__smiling_emoji, self.__negative_emoji, self.__typo]
