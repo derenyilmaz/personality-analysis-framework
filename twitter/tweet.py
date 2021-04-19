@@ -11,6 +11,7 @@ class Tweet:
     __vector = None
     __smiling_emoji = 0
     __negative_emoji = 0
+    __typo = 0
 
     def __init__(self):
         self.__pos = dict()
@@ -77,6 +78,12 @@ class Tweet:
 
     def get_negative_emoji(self):
         return self.__negative_emoji
+
+    def set_typo_ratio(self, typo):
+        self.__typo += typo
+
+    def get_typo_ratio(self):
+        return self.__typo
 
 
 
