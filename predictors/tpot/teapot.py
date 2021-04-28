@@ -14,7 +14,7 @@ from tpot import TPOTClassifier
 
 class teapot:
 
-    __features = 20
+    __features = 21
     __dimensions = 38
     __top_words = 25
     __window_size = 7
@@ -170,10 +170,10 @@ class teapot:
 def main():
     predictors = ["knn", "svm", "dt", "nb", "rf"]
 
+    #input_dimension = int(input()) #first number of the csv files you want to use
     for personality in "OCEAN":
 
         print("PERSONALITY TYPE: " + personality)
-
         t = teapot(38, personality)
         scores = []
 
